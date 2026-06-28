@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackSrc?: string;
@@ -17,6 +17,7 @@ export default function ImageWithFallback({
   const [error, setError] = useState(false);
   const [imgSrc, setImgSrc] = useState(src || fallbackSrc);
   const [retryCount, setRetryCount] = useState(0);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // Sync state if src changes
   useEffect(() => {
@@ -27,6 +28,21 @@ export default function ImageWithFallback({
       setRetryCount(0);
     }
   }, [src]);
+
+  // Fix for cached images: onLoad fires before React attaches the handler
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete) {
+      if (img.naturalWidth > 0) {
+        setLoading(false);
+      } else {
+        if (!error) {
+          setError(true);
+          setImgSrc(fallbackSrc);
+        }
+      }
+    }
+  }, [imgSrc]);
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setLoading(false);
@@ -54,6 +70,7 @@ export default function ImageWithFallback({
 
     if (!error) {
       setError(true);
+      setLoading(false);
       setImgSrc(fallbackSrc);
     } else {
       // If even the fallback fails, use a tiny, transparent spacer so it doesn't show a broken image icon
@@ -92,9 +109,10 @@ export default function ImageWithFallback({
         </div>
       )}
       <img
+        ref={imgRef}
         src={imgSrc}
         alt={alt || "Singapore Experience"}
-        loading="lazy"
+        loading="eager"
         referrerPolicy="no-referrer"
         onLoad={handleLoad}
         onError={handleError}
