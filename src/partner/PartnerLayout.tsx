@@ -37,7 +37,7 @@ export default function PartnerLayout() {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     await logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const navItems = [

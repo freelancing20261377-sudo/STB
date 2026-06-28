@@ -24,7 +24,7 @@ export default function CustomerLayout() {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     await logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const navItems = [
