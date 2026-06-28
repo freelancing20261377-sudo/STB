@@ -43,6 +43,8 @@ export default function ExperiencesFilters() {
 
   const handleWishlistClick = (tourId: string, tourTitle: string) => {
     if (!user) {
+      // Remember which tour the user wanted to wishlist
+      localStorage.setItem("pendingWishlistTourId", tourId);
       setPendingTourTitle(tourTitle);
       setShowSignInModal(true);
       return;

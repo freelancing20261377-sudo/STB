@@ -29,6 +29,7 @@ export default function TourDetails() {
 
   const handleWishlistClick = () => {
     if (!user) {
+      if (tour) localStorage.setItem("pendingWishlistTourId", tour.id);
       setShowSignInModal(true);
       return;
     }

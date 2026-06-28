@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React, { useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import TourDetails from "./pages/TourDetails";
@@ -39,19 +40,45 @@ import PartnerProfile from "./partner/pages/Profile";
 import FleetOnboarding from "./partner/pages/FleetOnboarding";
 
 import { AuthProvider } from "./context/AuthContext";
-import { WishlistProvider } from "./context/WishlistContext";
+import { WishlistProvider, useWishlist } from "./context/WishlistContext";
 import CustomerWishlist from "./customer/pages/Wishlist";
 import { ProtectedRoute } from "./context/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MainLayout from "./layouts/MainLayout";
 import AllFleets from "./pages/AllFleets";
+import { useAuth } from "./context/AuthContext";
+
+/** Silently adds a pending wishlist tour once the user logs in */
+function PendingWishlistProcessor() {
+  const { user } = useAuth();
+  const { toggleWishlist, isWishlisted } = useWishlist();
+  const prevUserRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const wasLoggedOut = prevUserRef.current === null;
+    const isNowLoggedIn = user !== null;
+
+    if (wasLoggedOut && isNowLoggedIn) {
+      const pendingId = localStorage.getItem("pendingWishlistTourId");
+      if (pendingId && !isWishlisted(pendingId)) {
+        toggleWishlist(pendingId);
+      }
+      localStorage.removeItem("pendingWishlistTourId");
+    }
+
+    prevUserRef.current = user ? user.id : null;
+  }, [user]);
+
+  return null;
+}
 
 export default function App() {
   return (
     <AuthProvider>
       <WishlistProvider>
       <BrowserRouter>
+        <PendingWishlistProcessor />
         <Routes>
           {/* Standalone full-screen routes */}
           <Route path="/login/:type" element={<Login />} />
