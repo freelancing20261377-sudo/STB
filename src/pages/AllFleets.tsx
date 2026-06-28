@@ -34,14 +34,12 @@ const ALL_FLEETS = [
   {
     category: "Luxury MPV",
     examples: "Lexus LM, Mercedes V-Class",
-    image:
-      "https://images.unsplash.com/photo-1583508182747-06cbff358c89?q=80&w=2071&auto=format&fit=crop",
+    image: "/fleets/Lexus-LM.jpg",
   },
   {
     category: "Executive Van",
     examples: "Mercedes Vito, Hyundai Staria",
-    image:
-      "https://images.unsplash.com/photo-1620311287365-ea9333907c13?q=80&w=2070&auto=format&fit=crop",
+    image: "/fleets/Merceds vito.jpeg",
   },
   {
     category: "VIP Minibus",
@@ -69,8 +67,7 @@ const ALL_FLEETS = [
   {
     category: "Wedding & Events",
     examples: "Rolls-Royce Ghost, Bentley Flying Spur",
-    image:
-      "https://images.unsplash.com/photo-1549468057-5ce758b22a01?q=80&w=2069&auto=format&fit=crop",
+    image: "/fleets/Rolls royce wedding.webp",
   },
   {
     category: "Corporate Chauffeur",
@@ -81,8 +78,7 @@ const ALL_FLEETS = [
   {
     category: "VIP Limousine",
     examples: "Mercedes S-Class, BMW 7 Series, Rolls-Royce Ghost",
-    image:
-      "https://images.unsplash.com/photo-1632230198038-f1f6c4c51b27?q=80&w=2070&auto=format&fit=crop",
+    image: "/fleets/VIP LIMOSHINE.jpeg",
   },
 ];
 
