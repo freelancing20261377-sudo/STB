@@ -149,3 +149,18 @@ body {
 .reviewer-initials { font-weight: 600; }
 .reviewer-role { font-weight: 600; letter-spacing: 0.05em; }
 .shadow-custom-card { box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1); }
+
+/* ── Mobile: center all text globally ── */
+@media (max-width: 767px) {
+  body, p, h1, h2, h3, h4, h5, h6, span, a, li, label, div {
+    text-align: center;
+  }
+
+  /* Keep left-align for inputs, form controls, and data tables */
+  input, textarea, select,
+  th, td,
+  .text-left,
+  [class*="text-left"] {
+    text-align: left !important;
+  }
+}
