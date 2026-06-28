@@ -64,10 +64,10 @@ const requireAuth = (roles: string[] = []) => (req: any, res: any, next: any) =>
 };
 
 function vehicleImage(catName: string) {
-  if (catName === "Luxury Sedans") return "/executive sedan.jpg";
-  if (catName === "Premium SUVs") return "/Luxury suv.webp";
-  if (catName === "Executive MPVs") return "/Premium MPV-1.jpg";
-  if (catName === "VIP Minibuses") return "/VIP Minibus.jpg";
+  if (catName === "Luxury Sedans") return "/fleets/benz c class.avif";
+  if (catName === "Premium SUVs") return "/fleets/benz gls.avif";
+  if (catName === "Executive MPVs") return "/fleets/Toyota alphard.jpg";
+  if (catName === "VIP Minibuses") return "/fleets/Mercedes-Benz Sprinter.jpeg";
   return "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop";
 }
 

@@ -113,10 +113,10 @@ export async function startServer() {
       const results = filtered.map((c) => {
         let image =
           "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop";
-        if (c.name === "Luxury Sedans") image = "/executive sedan.jpg";
-        if (c.name === "Premium SUVs") image = "/Luxury suv.webp";
-        if (c.name === "Executive MPVs") image = "/Premium MPV-1.jpg";
-        if (c.name === "VIP Minibuses") image = "/VIP Minibus.jpg";
+        if (c.name === "Luxury Sedans") image = "/fleets/benz c class.avif";
+        if (c.name === "Premium SUVs") image = "/fleets/benz gls.avif";
+        if (c.name === "Executive MPVs") image = "/fleets/Toyota alphard.jpg";
+        if (c.name === "VIP Minibuses") image = "/fleets/Mercedes-Benz Sprinter.jpeg";
 
         return {
           id: c.id,
@@ -176,10 +176,10 @@ export async function startServer() {
       let image =
         "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop";
 
-      if (cat.name === "Luxury Sedans") image = "/executive sedan.jpg";
-      if (cat.name === "Premium SUVs") image = "/Luxury suv.webp";
-      if (cat.name === "Executive MPVs") image = "/Premium MPV-1.jpg";
-      if (cat.name === "VIP Minibuses") image = "/VIP Minibus.jpg";
+      if (cat.name === "Luxury Sedans") image = "/fleets/benz c class.avif";
+      if (cat.name === "Premium SUVs") image = "/fleets/benz gls.avif";
+      if (cat.name === "Executive MPVs") image = "/fleets/Toyota alphard.jpg";
+      if (cat.name === "VIP Minibuses") image = "/fleets/Mercedes-Benz Sprinter.jpeg";
 
       return {
         id: v.id,
