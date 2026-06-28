@@ -1,0 +1,6 @@
+{
+  "name": "Luxury Transport CRM",
+  "description": "Multi-portal system for customer bookings, fleet management, and admin oversight for a premium transport service.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
