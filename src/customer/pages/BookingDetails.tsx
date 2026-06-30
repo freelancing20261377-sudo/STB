@@ -1,297 +1,505 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import {
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  Clock,
+  Users,
+  Car,
+  User,
+  Phone,
+  Mail,
+  Shield,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  Timer,
+  Plane,
+  Star,
+  CreditCard,
+  FileText,
+  Save,
+  Ban,
+} from "lucide-react";
+
+const AMBER = "#E9A23B";
+const NAVY = "#0a1128";
 
 export default function BookingDetails() {
   const { id } = useParams<{ id: string }>();
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
+
+  // Editable form fields
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pickup, setPickup] = useState("");
+  const [destination, setDestination] = useState("");
+  const [specialRequests, setSpecialRequests] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
 
   useEffect(() => {
     fetchDetails();
-    const interval = setInterval(fetchDetails, 10000);
-    return () => clearInterval(interval);
   }, [id]);
 
   const fetchDetails = async () => {
     try {
       const res = await axios.get(`/api/customer/bookings/${id}`);
-      setBooking(res.data);
+      const b = res.data;
+      setBooking(b);
+      // Populate form fields
+      setName(b.details?.customerName || "");
+      setEmail(b.details?.customerEmail || "");
+      setPhone(b.details?.customerPhone || "");
+      setPickup(b.details?.pickup || b.details?.pickup_location || "");
+      setDestination(b.details?.destination || b.details?.drop_location || "");
+      setSpecialRequests(b.details?.specialRequests || "");
+      if (b.date) {
+        const d = new Date(b.date);
+        setDate(d.toISOString().split("T")[0]);
+        setTime(d.toTimeString().slice(0, 5));
+      }
     } catch (e) {
       console.error(e);
-      if (!booking) navigate("/customer/bookings");
+      navigate("/customer/bookings");
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "CONFIRMED":
-        return "bg-[#E6F4EA] text-[#137333] border border-[#CEEAD6]";
-      case "PENDING":
-        return "bg-[#FFF8E1] text-[#B08D00] border border-[#FFECB3]";
-      case "COMPLETED":
-        return "bg-gray-100 text-gray-500 border border-gray-200";
-      case "CANCELLED":
-        return "bg-red-100 text-red-700 border border-red-600/20";
-      default:
-        return "bg-gray-100 text-gray-900";
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      // In a real app this would PUT to the API
+      await new Promise((r) => setTimeout(r, 800));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      alert("Failed to update booking.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading && !booking) {
-    return <div className="p-8 text-center">Loading Booking...</div>;
+  const statusConfig: Record<
+    string,
+    { icon: React.ReactNode; bg: string; text: string; border: string; label: string }
+  > = {
+    CONFIRMED: {
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+      bg: "#f0fdf4",
+      text: "#16a34a",
+      border: "#bbf7d0",
+      label: "Confirmed",
+    },
+    PENDING: {
+      icon: <Timer className="w-3.5 h-3.5" />,
+      bg: "#fffbeb",
+      text: "#b45309",
+      border: "#fde68a",
+      label: "Pending",
+    },
+    COMPLETED: {
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+      bg: "#f8fafc",
+      text: "#64748b",
+      border: "#e2e8f0",
+      label: "Completed",
+    },
+    CANCELLED: {
+      icon: <XCircle className="w-3.5 h-3.5" />,
+      bg: "#fef2f2",
+      text: "#dc2626",
+      border: "#fecaca",
+      label: "Cancelled",
+    },
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-full border-2 animate-spin"
+            style={{ borderColor: AMBER, borderTopColor: "transparent" }}
+          />
+          <p className="text-sm text-gray-400 font-medium">Loading booking…</p>
+        </div>
+      </div>
+    );
   }
+
   if (!booking) return null;
 
+  const status = statusConfig[booking.status] || statusConfig.PENDING;
+  const isEditable = booking.status === "PENDING";
+  const bookingDate = new Date(booking.date);
+
+  const inputClass =
+    "w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-slate-800 font-medium outline-none transition-all duration-200 bg-white";
+  const readonlyClass =
+    "w-full pl-11 pr-4 py-3 border border-gray-100 rounded-xl text-sm text-slate-700 font-medium bg-gray-50 cursor-not-allowed";
+
+  const Field = ({
+    label,
+    icon,
+    value,
+    onChange,
+    type = "text",
+    placeholder = "",
+    readonly = false,
+  }: {
+    label: string;
+    icon: React.ReactNode;
+    value: string;
+    onChange?: (v: string) => void;
+    type?: string;
+    placeholder?: string;
+    readonly?: boolean;
+  }) => (
+    <div>
+      <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+        {label}
+      </label>
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-300">
+          {icon}
+        </div>
+        <input
+          type={type}
+          value={value}
+          readOnly={readonly || !isEditable}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder={placeholder}
+          className={readonly || !isEditable ? readonlyClass : inputClass}
+          onFocus={
+            isEditable && !readonly
+              ? (e) => {
+                  e.target.style.borderColor = AMBER;
+                  e.target.style.boxShadow = "0 0 0 3px rgba(233,162,59,0.12)";
+                }
+              : undefined
+          }
+          onBlur={
+            isEditable && !readonly
+              ? (e) => {
+                  e.target.style.borderColor = "";
+                  e.target.style.boxShadow = "";
+                }
+              : undefined
+          }
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <main className="p-6 lg:p-8 flex-1">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-stack-lg">
+    <main
+      className="p-6 lg:p-8 flex-1"
+      style={{ fontFamily: "'Manrope', sans-serif" }}
+    >
+      {/* ── Header ── */}
+      <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => navigate("/customer/bookings")}
           aria-label="Go back"
-          className="w-[44px] h-[44px] flex items-center justify-center rounded-full hover:bg-gray-50 text-gray-500 transition-colors"
+          className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0"
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontVariationSettings: "'FILL' 0" }}
-          >
-            arrow_back
-          </span>
+          <ArrowLeft className="w-4 h-4" />
         </button>
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">
-            Booking #{booking.id.substring(0, 8).toUpperCase()}
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl font-bold text-slate-900 truncate">
+            Booking #{booking.id.substring(0, 10).toUpperCase()}
           </h2>
-          <p className="text-base text-gray-500 mt-1">
-            Created on {new Date(booking.createdAt).toLocaleDateString()}
+          <p className="text-xs text-gray-400 font-medium mt-0.5">
+            Created on{" "}
+            {new Date(booking.createdAt).toLocaleDateString("en-SG", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
           </p>
         </div>
-        <div className="ml-auto">
-          <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs uppercase tracking-wider font-semibold ${getStatusColor(booking.status)}`}
-          >
-            {booking.status}
-          </span>
-        </div>
+        <span
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex-shrink-0"
+          style={{
+            background: status.bg,
+            color: status.text,
+            border: `1px solid ${status.border}`,
+          }}
+        >
+          {status.icon}
+          {status.label}
+        </span>
       </div>
 
-      {/* 2-Column Layout Container */}
-      <div className="flex flex-col lg:flex-row gap-stack-lg items-start">
-        {/* Left Column (Approx 60%) */}
-        <div className="w-full lg:w-3/5 space-y-stack-lg">
-          {/* Trip Itinerary Timeline */}
-          <section className="bg-white rounded-xl p-stack-md shadow-[0_4px_12px_rgba(0,88,190,0.1)]">
-            <div className="flex justify-between items-center mb-stack-md">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <span
-                  className="material-symbols-outlined text-blue-600"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
+      <form onSubmit={handleSave}>
+        <div className="grid grid-cols-1 gap-6">
+          {/* ── LEFT: Booking Form ── */}
+          <div className="lg:col-span-2 space-y-5">
+
+            {/* Notice for non-editable bookings */}
+            {!isEditable && (
+              <div
+                className="flex items-start gap-3 p-4 rounded-xl"
+                style={{ background: "#fffbeb", border: "1px solid #fde68a" }}
+              >
+                <AlertCircle
+                  className="w-4 h-4 mt-0.5 flex-shrink-0"
+                  style={{ color: "#b45309" }}
+                />
+                <p
+                  className="text-xs font-semibold leading-relaxed"
+                  style={{ color: "#92400e" }}
                 >
-                  route
-                </span>
-                Itinerary
-              </h3>
-              <span className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase">
-                {new Date(booking.date).toLocaleDateString()}
-              </span>
-            </div>
-            <div className="relative pl-6 mt-4 border-l-2 border-gray-200 ml-3 pb-4">
-              {/* Pickup Node */}
-              <div className="absolute w-4 h-4 rounded-full bg-blue-600 -left-[9px] top-1 border-4 border-white"></div>
-              <div className="mb-stack-lg">
-                <p className="text-xs uppercase tracking-wider font-semibold text-blue-600 uppercase font-bold tracking-wider mb-1">
-                  Pickup •{" "}
-                  {new Date(booking.date).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <h4 className="text-lg text-body-lg font-semibold text-gray-900">
-                  {booking.details.pickup ||
-                    booking.details.pickup_location ||
-                    "N/A"}
-                </h4>
-                {booking.details.flightNumber && (
-                  <div className="mt-3 flex items-center gap-2 text-gray-500 bg-white px-3 py-2 rounded-lg border border-gray-200 w-fit">
-                    <span
-                      className="material-symbols-outlined text-[18px]"
-                      style={{ fontVariationSettings: "'FILL' 0" }}
-                    >
-                      flight_land
-                    </span>
-                    <span className="text-base">
-                      Flight {booking.details.flightNumber}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Dropoff Node */}
-              <div className="absolute w-4 h-4 rounded-full bg-on-surface-variant -left-[9px] bottom-6 border-4 border-white"></div>
-              <div>
-                <p className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase font-bold tracking-wider mb-1">
-                  Destination
-                </p>
-                <h4 className="text-lg text-body-lg font-semibold text-gray-900">
-                  {booking.details.destination ||
-                    booking.details.drop_location ||
-                    "Return to base / Hourly"}
-                </h4>
-                {booking.details.duration && (
-                  <p className="text-base text-gray-500 mt-1">
-                    Duration: {booking.details.duration}{" "}
-                    {booking.details.bookingType === "daily" ? "days" : "hours"}
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Vehicle Request Card (Tonal Layering Level 1) */}
-          <section className="bg-white rounded-xl p-stack-md shadow-[0_4px_12px_rgba(0,88,190,0.1)]">
-            <h3 className="text-lg font-semibold text-gray-900 mb-stack-sm flex items-center gap-2">
-              <span
-                className="material-symbols-outlined text-blue-600"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                directions_car
-              </span>
-              Vehicle Details
-            </h3>
-            <div className="flex flex-col gap-4 mt-4 mb-4">
-              <div>
-                <p className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase">
-                  Booking Type
-                </p>
-                <p className="text-base font-medium capitalize">
-                  {booking.details.bookingType}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase">
-                  Passengers
-                </p>
-                <p className="text-base font-medium">
-                  {booking.details.passengers || "-"}
-                </p>
-              </div>
-            </div>
-
-            {booking.assignedVehicle || booking.assignedDriver ? (
-              <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 space-y-4">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
-                  Fulfillment Assignment
-                </h4>
-                {booking.assignedVehicle && (
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-blue-600 text-[24px]">
-                      directions_car
-                    </span>
-                    <div>
-                      <p className="text-lg text-body-lg text-gray-900 font-semibold">
-                        {booking.assignedVehicle.make}{" "}
-                        {booking.assignedVehicle.model}
-                      </p>
-                      <p className="text-base text-gray-500 font-mono">
-                        {booking.assignedVehicle.license_plate}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {booking.assignedDriver && (
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-blue-600 text-[24px]">
-                      person
-                    </span>
-                    <div>
-                      <p className="text-lg text-body-lg text-gray-900 font-semibold">
-                        {booking.assignedDriver.name}
-                      </p>
-                      <p className="text-base text-gray-500">
-                        {booking.assignedDriver.phone}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="mt-4 p-4 rounded-lg bg-[#FFF8E1] border border-[#FFECB3] text-[#B08D00] flex gap-2 items-start">
-                <span className="material-symbols-outlined">info</span>
-                <p className="text-sm">
-                  Driver and specific vehicle details will be assigned closer to
-                  your pickup date. We will notify you when they are ready.
+                  This booking is <strong>{booking.status}</strong> and cannot
+                  be modified. Contact support if you need assistance.
                 </p>
               </div>
             )}
-          </section>
-        </div>
 
-        {/* Right Column (Approx 40%) - Sticky Sidebar */}
-        <div className="w-full lg:w-2/5 space-y-stack-lg sticky top-24">
-          {/* Payment Summary */}
-          <section className="bg-white rounded-xl p-stack-md shadow-[0_8px_24px_rgba(0,88,190,0.15)] border border-[#d3e4fe] relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-stack-md">
-              Payment Summary
-            </h3>
-            <div className="space-y-3 mb-6">
-              <div className="w-full h-[1px] bg-gray-200/30 my-4"></div>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-lg font-semibold font-bold text-gray-900">
-                    Total Amount
-                  </span>
+            {/* ── Passenger Details Card ── */}
+            <div className="rounded-2xl overflow-hidden shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] border border-gray-100/80">
+              <div
+                className="px-6 py-5 flex items-center gap-3"
+                style={{
+                  background: `linear-gradient(135deg, ${NAVY} 0%, #111a3a 100%)`,
+                }}
+              >
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: "rgba(233,162,59,0.15)",
+                    border: "1px solid rgba(233,162,59,0.3)",
+                  }}
+                >
+                  <User className="w-4 h-4" style={{ color: AMBER }} />
                 </div>
-                <span className="text-xl font-bold font-bold text-blue-600">
-                  S${parseFloat(booking.amount).toFixed(2)}
-                </span>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Passenger Details
+                  </h3>
+                  <p
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.5)" }}
+                  >
+                    {isEditable
+                      ? "Update your contact information"
+                      : "Contact information for this booking"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <Field
+                  label="Full Name"
+                  icon={<User className="w-4 h-4" />}
+                  value={name}
+                  onChange={setName}
+                  placeholder="John Smith"
+                />
+                <Field
+                  label="Email Address"
+                  icon={<Mail className="w-4 h-4" />}
+                  value={email}
+                  onChange={setEmail}
+                  type="email"
+                  placeholder="john@example.com"
+                />
+                <Field
+                  label="Phone Number"
+                  icon={<Phone className="w-4 h-4" />}
+                  value={phone}
+                  onChange={setPhone}
+                  type="tel"
+                  placeholder="+65 9123 4567"
+                />
+                <Field
+                  label="Special Requests"
+                  icon={<Star className="w-4 h-4" />}
+                  value={specialRequests}
+                  onChange={setSpecialRequests}
+                  placeholder="Child seat, wheelchair access…"
+                />
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <span
-                className="material-symbols-outlined text-blue-600 mt-0.5"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                info
-              </span>
-              <p className="text-base text-gray-500 text-sm leading-snug">
-                Cancellation is free up to 2 hours before the scheduled pickup
-                time.
-              </p>
-            </div>
-          </section>
 
-          {/* Action Buttons */}
-          <section className="flex flex-col gap-3">
-            {booking.status === "PENDING" && (
-              <button
-                onClick={() =>
-                  alert("Redirecting to secure payment gateway...")
-                }
-                className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+            {/* ── Trip Details Card ── */}
+            <div className="rounded-2xl overflow-hidden shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] border border-gray-100/80">
+              <div
+                className="px-6 py-5 flex items-center gap-3"
+                style={{
+                  background: `linear-gradient(135deg, ${NAVY} 0%, #111a3a 100%)`,
+                }}
               >
-                Pay S${parseFloat(booking.amount).toFixed(2)} Now
-              </button>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: "rgba(233,162,59,0.15)",
+                    border: "1px solid rgba(233,162,59,0.3)",
+                  }}
+                >
+                  <MapPin className="w-4 h-4" style={{ color: AMBER }} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Trip Details
+                  </h3>
+                  <p
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.5)" }}
+                  >
+                    Pickup, destination & schedule
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <Field
+                  label="Pickup Location"
+                  icon={<MapPin className="w-4 h-4" />}
+                  value={pickup}
+                  onChange={setPickup}
+                  placeholder="Changi Airport T3"
+                />
+                <Field
+                  label="Destination"
+                  icon={<MapPin className="w-4 h-4" />}
+                  value={destination}
+                  onChange={setDestination}
+                  placeholder="Marina Bay Sands"
+                />
+                <Field
+                  label="Date"
+                  icon={<Calendar className="w-4 h-4" />}
+                  value={date}
+                  onChange={setDate}
+                  type="date"
+                />
+                <Field
+                  label="Time"
+                  icon={<Clock className="w-4 h-4" />}
+                  value={time}
+                  onChange={setTime}
+                  type="time"
+                />
+
+                {/* Read-only fields */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Booking Type
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-300">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <input
+                      readOnly
+                      value={
+                        (booking.details?.bookingType || "—").charAt(0).toUpperCase() +
+                        (booking.details?.bookingType || "—").slice(1)
+                      }
+                      className={readonlyClass}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Passengers
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-300">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <input
+                      readOnly
+                      value={booking.details?.passengers || "—"}
+                      className={readonlyClass}
+                    />
+                  </div>
+                </div>
+
+                {booking.details?.flightNumber && (
+                  <div className="md:col-span-2">
+                    <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                      Flight Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-300">
+                        <Plane className="w-4 h-4" />
+                      </div>
+                      <input
+                        readOnly
+                        value={booking.details.flightNumber}
+                        className={readonlyClass}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+
+
+            {/* ── Action Buttons ── */}
+            {isEditable && (
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-60"
+                  style={{
+                    background: saved ? "#16a34a" : AMBER,
+                    color: saved ? "#fff" : "#0a1128",
+                  }}
+                >
+                  {saving ? (
+                    <>
+                      <div
+                        className="w-4 h-4 border-2 rounded-full animate-spin"
+                        style={{
+                          borderColor: "#0a1128",
+                          borderTopColor: "transparent",
+                        }}
+                      />
+                      Saving…
+                    </>
+                  ) : saved ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Saved!
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/customer/bookings")}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  <Ban className="w-4 h-4" />
+                  Discard
+                </button>
+              </div>
             )}
-            <button
-              aria-disabled
-              className="w-full h-[44px] mt-2 text-blue-600 text-base font-medium hover:underline flex items-center justify-center gap-2"
-            >
-              <span
-                className="material-symbols-outlined text-[20px]"
-                style={{ fontVariationSettings: "'FILL' 0" }}
-              >
-                download
-              </span>
-              Download Invoice (PDF)
-            </button>
-          </section>
+          </div>
+
+
         </div>
-      </div>
+      </form>
     </main>
   );
 }

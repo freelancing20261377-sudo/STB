@@ -11,6 +11,18 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
+  Phone,
+  MessageCircle,
+  User,
+  Mail,
+  PhoneCall,
+  Star,
+  ArrowRight,
+  Shield,
+  Car,
+  Calendar,
+  Clock,
+  MapPin,
 } from "lucide-react";
 
 export default function BookingFlow({
@@ -308,24 +320,81 @@ export default function BookingFlow({
     <div className={containerClass}>
       <div className={innerContainerClass}>
         {!embedded && (
-          <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-slate-900">
+          <div className="mb-8">
+            {/* Premium page title */}
+            <h1 className="text-3xl font-bold text-slate-900 mb-5" style={{ fontFamily: "'Manrope', sans-serif" }}>
               Complete Your Booking
             </h1>
-            <div className="flex gap-2 text-sm font-bold">
-              <span className={step >= 1 ? "text-blue-600" : "text-gray-400"}>
-                1. Vehicle
-              </span>
-              <span className="text-gray-300">&gt;</span>
-              <span className={step >= 2 ? "text-blue-600" : "text-gray-400"}>
-                2. Details
-              </span>
+            {/* Premium stepper */}
+            <div className="flex items-center gap-0">
+              {[{ n: 1, label: "Vehicle" }, { n: 2, label: "Details" }, { n: 3, label: "Payment" }, { n: 4, label: "Confirm" }].map((s, i, arr) => (
+                <React.Fragment key={s.n}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all duration-300"
+                      style={{
+                        background: step >= s.n ? "#E9A23B" : step === s.n - 1 ? "#f3f4f6" : "#f3f4f6",
+                        color: step >= s.n ? "#0a1128" : "#9ca3af",
+                        boxShadow: step === s.n ? "0 0 0 3px rgba(233,162,59,0.25)" : "none",
+                      }}
+                    >
+                      {step > s.n ? <Check className="w-3.5 h-3.5" /> : s.n}
+                    </div>
+                    <span
+                      className="text-xs font-semibold hidden sm:block"
+                      style={{ color: step >= s.n ? "#0a1128" : "#9ca3af" }}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div
+                      className="flex-1 mx-2 h-[2px] min-w-[20px] rounded-full transition-all duration-500"
+                      style={{ background: step > s.n ? "#E9A23B" : "#e5e7eb" }}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
             </div>
           </div>
         )}
 
         {step === 1 && (
           <div className="space-y-6">
+            {/* Selected Category Banner */}
+            {searchData.searchParams.selectedCategory && (
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-2xl shadow-sm border border-amber-200">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-800 mb-1">
+                      Selected Category
+                    </h2>
+                    <p className="text-amber-700 font-semibold text-xl">
+                      {searchData.searchParams.selectedCategory}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <a
+                      href="tel:+919840167444"
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-semibold transition-colors"
+                    >
+                      <Phone className="w-5 h-5" />
+                      Call Now
+                    </a>
+                    <a
+                      href="https://wa.me/919840167444"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-xl font-semibold transition-colors"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      WhatsApp
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 grid md:grid-cols-2 gap-6">
               <div>
                 <h2 className="text-lg font-bold mb-2 text-slate-800">
@@ -336,7 +405,7 @@ export default function BookingFlow({
                   {searchData.searchParams.bookingType === "airport" &&
                   searchData.searchParams.pickupType === "Arrival"
                     ? searchData.searchParams.airport
-                    : searchData.searchParams.pickup}{" "}
+                    : searchData.searchParams.pickup || "To be specified"}{" "}
                   <br />
                   <strong>To:</strong>{" "}
                   {searchData.searchParams.bookingType === "airport" &&
@@ -608,84 +677,262 @@ export default function BookingFlow({
         )}
 
         {step === 2 && (
-          <form
-            onSubmit={handleCustomerSubmit}
-            className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"
-          >
-            <h2 className="text-xl font-bold mb-6 text-slate-800">
-              Passenger Details
-            </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {/* Main Form Card */}
+            <form
+              onSubmit={handleCustomerSubmit}
+              className="lg:col-span-2 rounded-2xl overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] border border-gray-100/80"
+              style={{ fontFamily: "'Manrope', sans-serif" }}
+            >
+              {/* Dark Navy Header */}
+              <div
+                className="px-8 py-6 flex items-center gap-4"
+                style={{ background: "linear-gradient(135deg, #0a1128 0%, #111a3a 100%)" }}
+              >
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(233,162,59,0.15)", border: "1px solid rgba(233,162,59,0.3)" }}
+                >
+                  <User className="w-5 h-5" style={{ color: "#E9A23B" }} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Passenger Details</h2>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>We'll use this info to confirm your booking</p>
+                </div>
+              </div>
 
-            {/* Removed Account Required banner to allow guest checkout */}
+              {/* Form Body */}
+              <div className="bg-white p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <User className="w-4 h-4 text-gray-300" />
+                      </div>
+                      <input
+                        required
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="John Smith"
+                        className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl text-sm text-slate-800 font-medium outline-none transition-all duration-200"
+                        style={{ boxShadow: "none" }}
+                        onFocus={(e) => { e.target.style.borderColor = "#E9A23B"; e.target.style.boxShadow = "0 0 0 3px rgba(233,162,59,0.12)"; }}
+                        onBlur={(e) => { e.target.style.borderColor = ""; e.target.style.boxShadow = ""; }}
+                      />
+                    </div>
+                  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">
-                  Full Name
-                </label>
-                <input
-                  required
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                />
+                  {/* Email */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <Mail className="w-4 h-4 text-gray-300" />
+                      </div>
+                      <input
+                        required
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="john@example.com"
+                        className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl text-sm text-slate-800 font-medium outline-none transition-all duration-200"
+                        style={{ boxShadow: "none" }}
+                        onFocus={(e) => { e.target.style.borderColor = "#E9A23B"; e.target.style.boxShadow = "0 0 0 3px rgba(233,162,59,0.12)"; }}
+                        onBlur={(e) => { e.target.style.borderColor = ""; e.target.style.boxShadow = ""; }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <PhoneCall className="w-4 h-4 text-gray-300" />
+                      </div>
+                      <input
+                        required
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="+65 9123 4567"
+                        className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl text-sm text-slate-800 font-medium outline-none transition-all duration-200"
+                        style={{ boxShadow: "none" }}
+                        onFocus={(e) => { e.target.style.borderColor = "#E9A23B"; e.target.style.boxShadow = "0 0 0 3px rgba(233,162,59,0.12)"; }}
+                        onBlur={(e) => { e.target.style.borderColor = ""; e.target.style.boxShadow = ""; }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Special Requests */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                      Special Requests
+                      <span className="ml-1.5 text-gray-400 normal-case font-medium">(Optional)</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <Star className="w-4 h-4 text-gray-300" />
+                      </div>
+                      <input
+                        type="text"
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
+                        placeholder="Child seat, wheelchair access…"
+                        className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl text-sm text-slate-800 font-medium outline-none transition-all duration-200"
+                        style={{ boxShadow: "none" }}
+                        onFocus={(e) => { e.target.style.borderColor = "#E9A23B"; e.target.style.boxShadow = "0 0 0 3px rgba(233,162,59,0.12)"; }}
+                        onBlur={(e) => { e.target.style.borderColor = ""; e.target.style.boxShadow = ""; }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trust badge */}
+                <div
+                  className="flex items-center gap-2.5 px-4 py-3 rounded-xl mb-7"
+                  style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}
+                >
+                  <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#16a34a" }} />
+                  <p className="text-xs font-semibold" style={{ color: "#15803d" }}>
+                    Your personal data is encrypted and never shared with third parties.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="px-6 py-3.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl text-sm transition-all duration-200 hover:opacity-90 disabled:opacity-50 active:scale-[0.99]"
+                    style={{ background: "linear-gradient(135deg, #E9A23B 0%, #d4882a 100%)", color: "#0a1128" }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Continue to Payment
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">
-                  Email Address
-                </label>
-                <input
-                  required
-                  type="email"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">
-                  Phone Number
-                </label>
-                <input
-                  required
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="+65 9123 4567"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">
-                  Special Requests (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={specialRequests}
-                  onChange={(e) => setSpecialRequests(e.target.value)}
-                  placeholder="Child seat, wheelchair access, etc."
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                />
+            </form>
+
+            {/* Right: Booking Summary Sidebar */}
+            <div className="space-y-4" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              {/* Selected Vehicle Card */}
+              {selectedVehicle && (
+                <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.1)]">
+                  <div className="relative h-36 overflow-hidden bg-gray-100">
+                    <img
+                      src={selectedVehicle.image}
+                      alt={selectedVehicle.name}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,17,40,0.7) 0%, transparent 60%)" }} />
+                    <div className="absolute bottom-3 left-4 right-4">
+                      <p className="text-white font-bold text-sm leading-tight">{selectedVehicle.name}</p>
+                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.65)" }}>{selectedVehicle.type}</p>
+                    </div>
+                  </div>
+                  <div className="bg-white p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Estimated Total</span>
+                      <span className="text-lg font-extrabold" style={{ color: "#E9A23B" }}>S${selectedVehicle.estimatedTotal}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
+                        <Users className="w-3.5 h-3.5" style={{ color: "#E9A23B" }} />
+                        {selectedVehicle.capacity} pax
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
+                        <Briefcase className="w-3.5 h-3.5" style={{ color: "#E9A23B" }} />
+                        {selectedVehicle.luggage || 4} bags
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Trip Summary Card */}
+              {searchData.searchParams && (
+                <div
+                  className="rounded-2xl p-5 border border-gray-100 bg-white shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] space-y-3.5"
+                >
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Trip Summary</p>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(233,162,59,0.12)" }}>
+                      <MapPin className="w-3.5 h-3.5" style={{ color: "#E9A23B" }} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">From</p>
+                      <p className="text-xs text-slate-700 font-semibold leading-snug">
+                        {searchData.searchParams.bookingType === "airport" && searchData.searchParams.pickupType === "Arrival"
+                          ? searchData.searchParams.airport
+                          : searchData.searchParams.pickup || "To be specified"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(10,17,40,0.06)" }}>
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">To</p>
+                      <p className="text-xs text-slate-700 font-semibold leading-snug">
+                        {searchData.searchParams.bookingType === "airport" && searchData.searchParams.pickupType === "Departure"
+                          ? searchData.searchParams.airport
+                          : searchData.searchParams.destination || "As directed"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-gray-300" />
+                      <span className="text-xs text-slate-600 font-semibold">
+                        {new Date(searchData.searchParams.date).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-gray-300" />
+                      <span className="text-xs text-slate-600 font-semibold">{searchData.searchParams.time}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Secure checkout badge */}
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-400 font-medium pt-1">
+                <Shield className="w-3.5 h-3.5" />
+                Secure & encrypted checkout
               </div>
             </div>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-6 py-3 border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 bg-[#E9A23B] text-black font-bold py-3 rounded-xl hover:opacity-90 disabled:opacity-50"
-              >
-                {isSubmitting ? "Processing..." : "Continue to Payment"}
-              </button>
-            </div>
-          </form>
+          </div>
         )}
 
         {step === 3 && (

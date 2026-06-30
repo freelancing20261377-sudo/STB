@@ -138,12 +138,14 @@ export default function AllFleets() {
                         "bookingSearch",
                         JSON.stringify({
                           searchParams: {
-                            bookingType: "Transport",
-                            pickup: "Current Location",
-                            destination: "Selected Destination",
+                            bookingType: "hourly",
+                            pickup: "",
+                            destination: "",
                             date: new Date().toISOString().split("T")[0],
                             time: "12:00",
+                            duration: "3",
                             passengers: "4",
+                            selectedCategory: fleet.category,
                           },
                           results: [],
                         }),
