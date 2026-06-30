@@ -102,10 +102,39 @@ export default function BookingFlow({
       if (parsed.searchParams && parsed.searchParams.passengers) {
         setSelectedPassengers(parsed.searchParams.passengers.toString());
       }
+
+      // If user just logged in and has a pending draft, auto-create the booking
+      if (user) {
+        const sessionId = localStorage.getItem("guestSessionId");
+        if (sessionId) {
+          axios.get(`/api/booking-drafts/${sessionId}`).then((res) => {
+            if (res.data && res.data.search_parameters) {
+              const params = res.data.search_parameters;
+              axios
+                .post("/api/booking/create", {
+                  ...params,
+                  customerName:
+                    user.customerProfile
+                      ? `${user.customerProfile.first_name || ""} ${user.customerProfile.last_name || ""}`.trim()
+                      : "",
+                  customerEmail: user.email || "",
+                  customerPhone: user.customerProfile?.phone_number || "",
+                })
+                .then(() => {
+                  localStorage.removeItem("guestSessionId");
+                  sessionStorage.removeItem("bookingSearch");
+                  navigate("/customer/bookings");
+                })
+                .catch((e) => console.error("Auto-booking failed:", e));
+            }
+          }).catch(() => {});
+        }
+      }
     } else if (!embedded) {
       navigate("/");
     }
-  }, [navigate, embedded]);
+  }, [navigate, embedded, user]);
+
 
   // Load dynamic min/max prices from the database categories
   useEffect(() => {
@@ -204,7 +233,7 @@ export default function BookingFlow({
         searchParams: payload,
       });
       navigate("/login/customer", {
-        state: { returnTo: "/customer/bookings" },
+        state: { returnTo: "/booking" },
       });
     } else {
       setIsSubmitting(true);
