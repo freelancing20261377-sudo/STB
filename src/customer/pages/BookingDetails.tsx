@@ -21,7 +21,6 @@ import {
   CreditCard,
   FileText,
   Save,
-  Ban,
 } from "lucide-react";
 
 const AMBER = "#E9A23B";
@@ -485,14 +484,7 @@ export default function BookingDetails() {
                     </>
                   )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/customer/bookings")}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
-                >
-                  <Ban className="w-4 h-4" />
-                  Discard
-                </button>
+
               </div>
             )}
           </div>
