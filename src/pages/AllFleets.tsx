@@ -1,7 +1,9 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Car } from "lucide-react";
 import Navbar from "../components/Navbar";
+import SignInPromptModal from "../components/SignInPromptModal";
+import { useAuth } from "../context/AuthContext";
 
 const ALL_FLEETS = [
   {
@@ -83,6 +85,21 @@ const ALL_FLEETS = [
 ];
 
 export default function AllFleets() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showSignInModal, setShowSignInModal] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const pending = sessionStorage.getItem("pendingBookingSearch");
+      if (pending) {
+        sessionStorage.setItem("bookingSearch", pending);
+        sessionStorage.removeItem("pendingBookingSearch");
+        navigate("/booking");
+      }
+    }
+  }, [user, navigate]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -134,21 +151,24 @@ export default function AllFleets() {
                 <div className="mt-6 mt-auto">
                   <button
                     onClick={() => {
-                      sessionStorage.setItem(
-                        "bookingSearch",
-                        JSON.stringify({
-                          searchParams: {
-                            bookingType: "Transport",
-                            pickup: "Current Location",
-                            destination: "Selected Destination",
-                            date: new Date().toISOString().split("T")[0],
-                            time: "12:00",
-                            passengers: "4",
-                          },
-                          results: [],
-                        }),
-                      );
-                      window.location.href = "/booking";
+                      const searchData = {
+                        searchParams: {
+                          bookingType: "Transport",
+                          pickup: "Current Location",
+                          destination: "Selected Destination",
+                          date: new Date().toISOString().split("T")[0],
+                          time: "12:00",
+                          passengers: "4",
+                        },
+                        results: [],
+                      };
+                      if (!user) {
+                        sessionStorage.setItem("pendingBookingSearch", JSON.stringify(searchData));
+                        setShowSignInModal(true);
+                      } else {
+                        sessionStorage.setItem("bookingSearch", JSON.stringify(searchData));
+                        navigate("/booking");
+                      }
                     }}
                     className="block w-full text-center py-2 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
                   >
@@ -160,6 +180,14 @@ export default function AllFleets() {
           ))}
         </div>
       </main>
+
+      <SignInPromptModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+        title="Sign in to Book"
+        subtitle="Please sign in or create an account to proceed with your booking."
+        icon={<Car className="w-8 h-8 fill-white text-white" />}
+      />
     </div>
   );
 }

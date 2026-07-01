@@ -90,6 +90,13 @@ export default function BookingFlow({
       if (parsed.searchParams && parsed.searchParams.passengers) {
         setSelectedPassengers(parsed.searchParams.passengers.toString());
       }
+      
+      if (parsed.preSelectedVehicle) {
+        // Find the vehicle with calculated price if available in results
+        const matchingResult = parsed.results?.find((v: any) => v.id === parsed.preSelectedVehicle.id);
+        setSelectedVehicle(matchingResult || parsed.preSelectedVehicle);
+        setStep(2);
+      }
     } else if (!embedded) {
       navigate("/");
     }
@@ -670,13 +677,15 @@ export default function BookingFlow({
               </div>
             </div>
             <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-6 py-3 border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50"
-              >
-                Back
-              </button>
+              {!searchData?.preSelectedVehicle && (
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="px-6 py-3 border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50"
+                >
+                  Back
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={isSubmitting}

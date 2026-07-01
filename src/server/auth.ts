@@ -6,7 +6,7 @@ export const authRouter = Router();
 const JWT_SECRET =
   process.env.JWT_SECRET || "super_secret_jwt_key_should_be_changed";
 
-const MOCK_USERS = [
+const MOCK_USERS: Array<{ id: string; email: string; role: string; name: string; onboardingComplete?: boolean }> = [
   { id: "1", email: "admin@example.com", role: "ADMIN", name: "Admin User" },
   {
     id: "2",
@@ -21,6 +21,19 @@ const MOCK_USERS = [
     name: "Fleet Operator",
   },
   { id: "4", email: "driver@example.com", role: "DRIVER", name: "Driver User" },
+  {
+    id: "5",
+    email: "fleet1@gmail.com",
+    role: "OPERATOR",
+    name: "Fleet One Operator",
+    onboardingComplete: true,
+  },
+  {
+    id: "6",
+    email: "admin1@gmail.com",
+    role: "ADMIN",
+    name: "Admin One",
+  },
 ];
 
 authRouter.post("/register", async (req, res) => {
@@ -59,7 +72,7 @@ authRouter.post("/login", async (req, res) => {
     }
 
     const accessToken = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
-      expiresIn: "15m",
+      expiresIn: "30d",
     });
 
     res.json({
@@ -71,7 +84,10 @@ authRouter.post("/login", async (req, res) => {
         role: user.role,
         operatorProfile:
           user.role === "OPERATOR"
-            ? { company_name: "Mock Operator Fleet" }
+            ? {
+                company_name: "Mock Operator Fleet",
+                onboarding_step: (user as any).onboardingComplete ? 6 : 1,
+              }
             : null,
         customerProfile:
           user.role === "CUSTOMER"
@@ -118,6 +134,7 @@ authRouter.get("/me", requireAuth(), async (req: any, res: any) => {
     id: req.user.id,
     email: "test@example.com",
     role: req.user.role,
+    onboardingComplete: false,
   };
   res.json({
     user: {
@@ -126,7 +143,10 @@ authRouter.get("/me", requireAuth(), async (req: any, res: any) => {
       role: user.role,
       operatorProfile:
         user.role === "OPERATOR"
-          ? { company_name: "Mock Operator Fleet" }
+          ? {
+              company_name: "Mock Operator Fleet",
+              onboarding_step: (user as any).onboardingComplete ? 6 : 1,
+            }
           : null,
       customerProfile:
         user.role === "CUSTOMER"

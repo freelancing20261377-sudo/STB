@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import {
+  User,
+  Mail,
+  Phone,
+  Star,
+  MapPin,
+  Calendar,
+  Clock,
+  FileText,
+  Users,
+  Save
+} from "lucide-react";
 
 export default function BookingDetails() {
   const { id } = useParams<{ id: string }>();
@@ -8,16 +20,43 @@ export default function BookingDetails() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Form State
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    specialRequests: "",
+    pickup: "",
+    destination: "",
+    date: "",
+    time: "",
+    bookingType: "",
+    passengers: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     fetchDetails();
-    const interval = setInterval(fetchDetails, 10000);
-    return () => clearInterval(interval);
   }, [id]);
 
   const fetchDetails = async () => {
     try {
       const res = await axios.get(`/api/customer/bookings/${id}`);
       setBooking(res.data);
+      
+      const b = res.data;
+      setFormData({
+        name: b.details?.customerName || b.customer?.name || "",
+        email: b.details?.customerEmail || b.customer?.email || "",
+        phone: b.details?.phone || b.customer?.phone || "",
+        specialRequests: b.details?.specialRequests || "",
+        pickup: b.details?.pickup || b.details?.pickup_location || "",
+        destination: b.details?.destination || b.details?.drop_location || "",
+        date: b.date ? new Date(b.date).toISOString().split("T")[0] : "",
+        time: b.details?.time || b.time || "",
+        bookingType: b.details?.bookingType || "Hourly",
+        passengers: b.details?.passengers?.toString() || ""
+      });
     } catch (e) {
       console.error(e);
       if (!booking) navigate("/customer/bookings");
@@ -41,22 +80,39 @@ export default function BookingDetails() {
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Mock API call to update booking
+    setTimeout(() => {
+      alert("Booking details updated successfully!");
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
   if (loading && !booking) {
     return <div className="p-8 text-center">Loading Booking...</div>;
   }
   if (!booking) return null;
 
   return (
-    <main className="p-6 lg:p-8 flex-1">
+    <main className="p-6 lg:p-8 flex-1 bg-gray-50/50 min-h-screen">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-stack-lg">
+      <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => navigate("/customer/bookings")}
           aria-label="Go back"
-          className="w-[44px] h-[44px] flex items-center justify-center rounded-full hover:bg-gray-50 text-gray-500 transition-colors"
+          className="w-10 h-10 bg-white border border-gray-200 flex items-center justify-center rounded-full hover:bg-gray-50 text-gray-500 transition-colors shadow-sm"
         >
           <span
-            className="material-symbols-outlined"
+            className="material-symbols-outlined text-[20px]"
             style={{ fontVariationSettings: "'FILL' 0" }}
           >
             arrow_back
@@ -66,232 +122,222 @@ export default function BookingDetails() {
           <h2 className="text-xl font-bold text-gray-900">
             Booking #{booking.id.substring(0, 8).toUpperCase()}
           </h2>
-          <p className="text-base text-gray-500 mt-1">
-            Created on {new Date(booking.createdAt).toLocaleDateString()}
+          <p className="text-sm text-gray-400 font-medium mt-0.5">
+            Created on {new Date(booking.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
         <div className="ml-auto">
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs uppercase tracking-wider font-semibold ${getStatusColor(booking.status)}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] uppercase tracking-wider font-bold ${getStatusColor(booking.status)}`}
           >
+            <span className="material-symbols-outlined text-[14px]">
+              schedule
+            </span>
             {booking.status}
           </span>
         </div>
       </div>
 
-      {/* 2-Column Layout Container */}
-      <div className="flex flex-col lg:flex-row gap-stack-lg items-start">
-        {/* Left Column (Approx 60%) */}
-        <div className="w-full lg:w-3/5 space-y-stack-lg">
-          {/* Trip Itinerary Timeline */}
-          <section className="bg-white rounded-xl p-stack-md shadow-[0_4px_12px_rgba(0,88,190,0.1)]">
-            <div className="flex justify-between items-center mb-stack-md">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <span
-                  className="material-symbols-outlined text-blue-600"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  route
-                </span>
-                Itinerary
-              </h3>
-              <span className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase">
-                {new Date(booking.date).toLocaleDateString()}
-              </span>
+      <form onSubmit={handleSubmit} className="max-w-4xl space-y-8">
+        {/* Passenger Details Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-[#0a1128] px-6 py-5 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+              <User className="w-5 h-5" />
             </div>
-            <div className="relative pl-6 mt-4 border-l-2 border-gray-200 ml-3 pb-4">
-              {/* Pickup Node */}
-              <div className="absolute w-4 h-4 rounded-full bg-blue-600 -left-[9px] top-1 border-4 border-white"></div>
-              <div className="mb-stack-lg">
-                <p className="text-xs uppercase tracking-wider font-semibold text-blue-600 uppercase font-bold tracking-wider mb-1">
-                  Pickup •{" "}
-                  {new Date(booking.date).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <h4 className="text-lg text-body-lg font-semibold text-gray-900">
-                  {booking.details.pickup ||
-                    booking.details.pickup_location ||
-                    "N/A"}
-                </h4>
-                {booking.details.flightNumber && (
-                  <div className="mt-3 flex items-center gap-2 text-gray-500 bg-white px-3 py-2 rounded-lg border border-gray-200 w-fit">
-                    <span
-                      className="material-symbols-outlined text-[18px]"
-                      style={{ fontVariationSettings: "'FILL' 0" }}
-                    >
-                      flight_land
-                    </span>
-                    <span className="text-base">
-                      Flight {booking.details.flightNumber}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Dropoff Node */}
-              <div className="absolute w-4 h-4 rounded-full bg-on-surface-variant -left-[9px] bottom-6 border-4 border-white"></div>
-              <div>
-                <p className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase font-bold tracking-wider mb-1">
-                  Destination
-                </p>
-                <h4 className="text-lg text-body-lg font-semibold text-gray-900">
-                  {booking.details.destination ||
-                    booking.details.drop_location ||
-                    "Return to base / Hourly"}
-                </h4>
-                {booking.details.duration && (
-                  <p className="text-base text-gray-500 mt-1">
-                    Duration: {booking.details.duration}{" "}
-                    {booking.details.bookingType === "daily" ? "days" : "hours"}
-                  </p>
-                )}
+            <div>
+              <h3 className="text-white font-bold text-lg">Passenger Details</h3>
+              <p className="text-gray-400 text-xs">Update your contact information</p>
+            </div>
+          </div>
+          <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Full Name"
+                />
               </div>
             </div>
-          </section>
-
-          {/* Vehicle Request Card (Tonal Layering Level 1) */}
-          <section className="bg-white rounded-xl p-stack-md shadow-[0_4px_12px_rgba(0,88,190,0.1)]">
-            <h3 className="text-lg font-semibold text-gray-900 mb-stack-sm flex items-center gap-2">
-              <span
-                className="material-symbols-outlined text-blue-600"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                directions_car
-              </span>
-              Vehicle Details
-            </h3>
-            <div className="flex flex-col gap-4 mt-4 mb-4">
-              <div>
-                <p className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase">
-                  Booking Type
-                </p>
-                <p className="text-base font-medium capitalize">
-                  {booking.details.bookingType}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wider font-semibold text-gray-500 uppercase">
-                  Passengers
-                </p>
-                <p className="text-base font-medium">
-                  {booking.details.passengers || "-"}
-                </p>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Email Address"
+                />
               </div>
             </div>
-
-            {booking.assignedVehicle || booking.assignedDriver ? (
-              <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 space-y-4">
-                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
-                  Fulfillment Assignment
-                </h4>
-                {booking.assignedVehicle && (
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-blue-600 text-[24px]">
-                      directions_car
-                    </span>
-                    <div>
-                      <p className="text-lg text-body-lg text-gray-900 font-semibold">
-                        {booking.assignedVehicle.make}{" "}
-                        {booking.assignedVehicle.model}
-                      </p>
-                      <p className="text-base text-gray-500 font-mono">
-                        {booking.assignedVehicle.license_plate}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {booking.assignedDriver && (
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-blue-600 text-[24px]">
-                      person
-                    </span>
-                    <div>
-                      <p className="text-lg text-body-lg text-gray-900 font-semibold">
-                        {booking.assignedDriver.name}
-                      </p>
-                      <p className="text-base text-gray-500">
-                        {booking.assignedDriver.phone}
-                      </p>
-                    </div>
-                  </div>
-                )}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Phone Number"
+                />
               </div>
-            ) : (
-              <div className="mt-4 p-4 rounded-lg bg-[#FFF8E1] border border-[#FFECB3] text-[#B08D00] flex gap-2 items-start">
-                <span className="material-symbols-outlined">info</span>
-                <p className="text-sm">
-                  Driver and specific vehicle details will be assigned closer to
-                  your pickup date. We will notify you when they are ready.
-                </p>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Special Requests
+              </label>
+              <div className="relative">
+                <Star className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="specialRequests"
+                  value={formData.specialRequests}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Child seat, wheelchair access..."
+                />
               </div>
-            )}
-          </section>
+            </div>
+          </div>
         </div>
 
-        {/* Right Column (Approx 40%) - Sticky Sidebar */}
-        <div className="w-full lg:w-2/5 space-y-stack-lg sticky top-24">
-          {/* Payment Summary */}
-          <section className="bg-white rounded-xl p-stack-md shadow-[0_8px_24px_rgba(0,88,190,0.15)] border border-[#d3e4fe] relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-stack-md">
-              Payment Summary
-            </h3>
-            <div className="space-y-3 mb-6">
-              <div className="w-full h-[1px] bg-gray-200/30 my-4"></div>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-lg font-semibold font-bold text-gray-900">
-                    Total Amount
-                  </span>
-                </div>
-                <span className="text-xl font-bold font-bold text-blue-600">
-                  S${parseFloat(booking.amount).toFixed(2)}
-                </span>
+        {/* Trip Details Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-[#0a1128] px-6 py-5 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-lg">Trip Details</h3>
+              <p className="text-gray-400 text-xs">Pickup, destination & schedule</p>
+            </div>
+          </div>
+          <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Pickup Location
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="pickup"
+                  value={formData.pickup}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Pickup Location"
+                />
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <span
-                className="material-symbols-outlined text-blue-600 mt-0.5"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                info
-              </span>
-              <p className="text-base text-gray-500 text-sm leading-snug">
-                Cancellation is free up to 2 hours before the scheduled pickup
-                time.
-              </p>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Destination
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="destination"
+                  value={formData.destination}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Destination"
+                />
+              </div>
             </div>
-          </section>
-
-          {/* Action Buttons */}
-          <section className="flex flex-col gap-3">
-            {booking.status === "PENDING" && (
-              <button
-                onClick={() =>
-                  alert("Redirecting to secure payment gateway...")
-                }
-                className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                Pay S${parseFloat(booking.amount).toFixed(2)} Now
-              </button>
-            )}
-            <button
-              aria-disabled
-              className="w-full h-[44px] mt-2 text-blue-600 text-base font-medium hover:underline flex items-center justify-center gap-2"
-            >
-              <span
-                className="material-symbols-outlined text-[20px]"
-                style={{ fontVariationSettings: "'FILL' 0" }}
-              >
-                download
-              </span>
-              Download Invoice (PDF)
-            </button>
-          </section>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Date
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Time
+              </label>
+              <div className="relative">
+                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Booking Type
+              </label>
+              <div className="relative">
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="bookingType"
+                  value={formData.bookingType}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Hourly"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Passengers
+              </label>
+              <div className="relative">
+                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="number"
+                  name="passengers"
+                  value={formData.passengers}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                  placeholder="Number of Passengers"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-[#E9A23B] hover:bg-amber-500 text-gray-900 font-bold px-6 py-3.5 rounded-xl flex items-center gap-2 transition-colors disabled:opacity-70 shadow-sm"
+          >
+            <Save className="w-5 h-5" />
+            {isSubmitting ? "Submitting..." : "Submit Form"}
+          </button>
+        </div>
+      </form>
     </main>
   );
 }

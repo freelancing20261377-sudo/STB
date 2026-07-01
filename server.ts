@@ -82,22 +82,7 @@ export async function startServer() {
   ];
 
   const mockDrafts: any[] = [];
-  const mockBookings: any[] = [
-    {
-      id: "b_1",
-      customer_id: "c_1",
-      target_date: new Date().toISOString(),
-      total_amount: "450",
-      status: "CONFIRMED",
-      notes: JSON.stringify({
-        customerName: "Alice Smith",
-        bookingType: "airport",
-        pickup: "Changi Airport",
-        destination: "Marina Bay Sands",
-      }),
-      created_at: new Date().toISOString(),
-    },
-  ];
+  const mockBookings: any[] = [];
 
   // Auth API
   app.use("/api/auth", authRouter);

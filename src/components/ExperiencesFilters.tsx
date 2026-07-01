@@ -13,6 +13,7 @@ import {
   MapPin,
   Clock,
   Heart,
+  Car,
 } from "lucide-react";
 import ImageWithFallback from "./ImageWithFallback";
 import { useWishlist } from "../context/WishlistContext";
@@ -39,6 +40,7 @@ export default function ExperiencesFilters() {
   const { isWishlisted, toggleWishlist } = useWishlist();
   const { user } = useAuth();
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [pendingModalType, setPendingModalType] = useState<"wishlist" | "booking">("wishlist");
   const [pendingTourTitle, setPendingTourTitle] = useState<string | undefined>();
 
   const handleWishlistClick = (tourId: string, tourTitle: string) => {
@@ -46,6 +48,7 @@ export default function ExperiencesFilters() {
       // Remember which tour the user wanted to wishlist
       localStorage.setItem("pendingWishlistTourId", tourId);
       setPendingTourTitle(tourTitle);
+      setPendingModalType("wishlist");
       setShowSignInModal(true);
       return;
     }
@@ -243,6 +246,12 @@ export default function ExperiencesFilters() {
 
   // Seamless booking triggers
   const handleOpenBooking = (vehicle: Vehicle) => {
+    if (!user) {
+      sessionStorage.setItem("pendingBookingVehicle", JSON.stringify(vehicle));
+      setPendingModalType("booking");
+      setShowSignInModal(true);
+      return;
+    }
     setSelectedVehicleToBook(vehicle);
     // Set a default date of tomorrow
     const tomorrow = new Date();
@@ -250,6 +259,19 @@ export default function ExperiencesFilters() {
     setBookingDate(tomorrow.toISOString().split("T")[0]);
     setShowBookingModal(true);
   };
+
+  useEffect(() => {
+    if (user) {
+      const pendingVehicle = sessionStorage.getItem("pendingBookingVehicle");
+      if (pendingVehicle) {
+        try {
+          const vehicle = JSON.parse(pendingVehicle);
+          sessionStorage.removeItem("pendingBookingVehicle");
+          setTimeout(() => handleOpenBooking(vehicle), 100);
+        } catch (e) {}
+      }
+    }
+  }, [user]);
 
   const handleConfirmBookingSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,66 +281,22 @@ export default function ExperiencesFilters() {
     }
 
     try {
-      const searchParams = {
+      const bookingPayload = {
         bookingType: "hourly",
         pickup,
         destination: destination || "As directed",
         date: bookingDate,
         time: bookingTime,
-        duration: parseInt(bookingDuration),
-        passengers: selectedVehicleToBook ? selectedVehicleToBook.capacity : 4,
+        customerName: user ? user.name : "Customer",
+        totalPrice: selectedVehicleToBook
+          ? selectedVehicleToBook.hourlyRate * parseInt(bookingDuration)
+          : 150,
       };
 
-      // Query live API search to get exact results
-      const response = await axios.post("/api/search", searchParams);
-
-      // Inject specifically our selected vehicle with accurate total price based on hourly rate
-      const results = response.data.vehicles.map((v: any) => {
-        if (
-          v.id === selectedVehicleToBook?.id ||
-          v.name === selectedVehicleToBook?.name
-        ) {
-          return {
-            ...v,
-            id: selectedVehicleToBook.id,
-            estimatedTotal:
-              selectedVehicleToBook.hourlyRate * parseInt(bookingDuration),
-          };
-        }
-        return v;
-      });
-
-      // Write session storage
-      sessionStorage.setItem(
-        "bookingSearch",
-        JSON.stringify({
-          searchParams,
-          results:
-            results.length > 0
-              ? results
-              : [
-                  {
-                    id: selectedVehicleToBook?.id,
-                    name: selectedVehicleToBook?.name,
-                    type: selectedVehicleToBook?.type,
-                    capacity: selectedVehicleToBook?.capacity,
-                    luggage: selectedVehicleToBook?.luggage || 4,
-                    image: selectedVehicleToBook?.image,
-                    estimatedTotal:
-                      (selectedVehicleToBook?.hourlyRate || 150) *
-                      parseInt(bookingDuration),
-                  },
-                ],
-          tripMetadata: {
-            travelDistance: response.data.travelDistance || null,
-            travelTime: response.data.travelTime || null,
-            eta: response.data.eta || null,
-          },
-        }),
-      );
+      await axios.post("/api/booking/create", bookingPayload);
 
       setShowBookingModal(false);
-      navigate("/customer/new-booking");
+      navigate("/customer/bookings");
     } catch (err) {
       console.error(err);
       alert("Failed to initialize booking session. Please try again.");
@@ -864,11 +842,14 @@ export default function ExperiencesFilters() {
         </div>
       )}
 
-      {/* Sign-in prompt modal for wishlist */}
+      {/* Sign-in prompt modal */}
       <SignInPromptModal
         isOpen={showSignInModal}
         onClose={() => setShowSignInModal(false)}
-        tourTitle={pendingTourTitle}
+        tourTitle={pendingModalType === "wishlist" ? pendingTourTitle : undefined}
+        title={pendingModalType === "booking" ? "Sign in to Book" : undefined}
+        subtitle={pendingModalType === "booking" ? "Please sign in or create an account to proceed with your booking." : undefined}
+        icon={pendingModalType === "booking" ? <Car className="w-8 h-8 fill-white text-white" /> : undefined}
       />
     </div>
   );

@@ -1,19 +1,26 @@
 import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Heart, X, LogIn, UserPlus } from "lucide-react";
 
 interface SignInPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
   tourTitle?: string;
+  title?: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
 }
 
 export default function SignInPromptModal({
   isOpen,
   onClose,
   tourTitle,
+  title,
+  subtitle,
+  icon,
 }: SignInPromptModalProps) {
+  const location = useLocation();
   // Close on Escape key
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -70,14 +77,14 @@ export default function SignInPromptModal({
                   transition={{ delay: 0.15, type: "spring", stiffness: 300 }}
                   className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4"
                 >
-                  <Heart className="w-8 h-8 fill-white text-white" />
+                  {icon || <Heart className="w-8 h-8 fill-white text-white" />}
                 </motion.div>
 
-                <h2 className="text-2xl font-bold mb-1">Save to Wishlist</h2>
+                <h2 className="text-2xl font-bold mb-1">{title || "Save to Wishlist"}</h2>
                 <p className="text-rose-100 text-sm">
-                  {tourTitle
+                  {subtitle || (tourTitle
                     ? `Sign in to save "${tourTitle}"`
-                    : "Sign in to save your favourite tours"}
+                    : "Sign in to save your favourite tours")}
                 </p>
               </div>
 
@@ -90,6 +97,7 @@ export default function SignInPromptModal({
 
                 <Link
                   to="/login/customer"
+                  state={{ returnTo: location.pathname }}
                   onClick={onClose}
                   className="flex items-center justify-center gap-2 w-full bg-[#0058BE] hover:bg-[#004a9e] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-md hover:shadow-lg"
                 >
@@ -99,6 +107,7 @@ export default function SignInPromptModal({
 
                 <Link
                   to="/register"
+                  state={{ returnTo: location.pathname }}
                   onClick={onClose}
                   className="flex items-center justify-center gap-2 w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold py-3.5 rounded-2xl border border-gray-200 transition-colors"
                 >
